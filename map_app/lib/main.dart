@@ -110,6 +110,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     final lngTween = Tween<double>(
         begin: mapController.center.longitude, end: destLocation.longitude);
     final zoomTween = Tween<double>(begin: mapController.zoom, end: destZoom);
+    final rotationTween = Tween<double>(begin: mapController.rotation, end: 0);
 
     var controller = AnimationController(
         duration: const Duration(milliseconds: 1000), vsync: this);
@@ -118,10 +119,10 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
         CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
 
     controller.addListener(() {
-      mapController.move(
-        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
-        zoomTween.evaluate(animation),
-      );
+      mapController.moveAndRotate(
+          LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
+          zoomTween.evaluate(animation),
+          rotationTween.evaluate(animation));
     });
 
     animation.addStatusListener((status) {
