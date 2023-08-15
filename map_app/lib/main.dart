@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
@@ -77,10 +78,34 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   int currentPage = 0;
   LatLng currentLocation = const LatLng(-35.269310, 149.097613);
 
+  double generateRandomNumberInRangeWithDecimals(
+      double min, double max, int decimalPlaces) {
+    if (min >= max || decimalPlaces < 0) {
+      throw ArgumentError('Invalid arguments');
+    }
+
+    Random random = Random();
+    double multiplier = pow(10, decimalPlaces).toDouble();
+    double randomValue = min + (random.nextDouble() * (max - min));
+
+    randomValue = (randomValue * multiplier).floor() / multiplier;
+
+    return randomValue;
+  }
+
   @override
   void initState() {
     super.initState();
     mapController = MapController();
+
+    for (var i = 0; i < 20; i++) {
+      locations.add(Location(
+          name: 'Random Place $i',
+          address: 'Random Place $i, Canberra',
+          location: LatLng(
+              generateRandomNumberInRangeWithDecimals(-35.515, -35.118, 6),
+              generateRandomNumberInRangeWithDecimals(148.921, 149.26, 6))));
+    }
   }
 
   static openMap(double latitude, double longitude) async {
@@ -143,9 +168,9 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
         FlutterMap(
           mapController: mapController,
           options: MapOptions(
-            minZoom: 5,
+            minZoom: 13,
             maxZoom: 18,
-            zoom: 14,
+            zoom: 13,
             center: currentLocation,
           ),
           children: [
@@ -204,12 +229,13 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 setState(() {
                   currentPage = value;
                   currentLocation = locations[value].location!;
-                  _animatedMapMove(currentLocation, 14);
+                  _animatedMapMove(currentLocation, 13);
                 });
               },
               itemCount: locations.length,
               itemBuilder: (_, index) {
                 final location = locations[index];
+
                 return Padding(
                   padding: const EdgeInsets.all(20),
                   child: Card(
@@ -230,15 +256,19 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                   Text(
                                     location.name ?? 'Unknown',
                                     style: const TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
                                     location.address ?? 'Unknown',
                                     style: const TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 12,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   const Expanded(
                                     child: SizedBox(
