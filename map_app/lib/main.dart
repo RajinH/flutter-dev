@@ -87,14 +87,18 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     var uri = Uri();
 
     if (Platform.isAndroid) {
-      uri = Uri.parse(
-          "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude");
+      uri = Uri.parse(Uri.encodeFull(
+          "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude"));
     } else {
-      uri = Uri.parse("https://maps.apple.com/?q=$latitude,$longitude");
+      uri = Uri.parse(
+          Uri.encodeFull("https://maps.apple.com/?daddr=$latitude,$longitude"));
     }
 
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+      await launchUrl(uri,
+          mode: Platform.isAndroid
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
     } else {
       throw 'Could not launch ${uri.toString()}';
     }
