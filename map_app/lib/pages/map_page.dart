@@ -103,6 +103,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             maxZoom: 18,
             zoom: 13,
             center: currentLocation,
+            onTap: (tapPosition, point) {
+              setState(() {
+                currentLocation = point;
+                _animatedMapMove(currentLocation, 13);
+              });
+            },
           ),
           children: [
             TileLayer(
