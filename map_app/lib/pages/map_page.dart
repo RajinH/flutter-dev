@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:map_app/blocs/locations_bloc.dart';
-import 'package:map_app/blocs/locations_events.dart';
+import 'package:map_app/blocs/locations_cubit.dart';
 import 'package:map_app/blocs/locations_states.dart';
 import 'package:map_app/repositories/locations_repo.dart';
 import 'package:map_app/shared/constants.dart';
@@ -67,9 +66,8 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          LocationsBloc(LocationsRepository())..add(LoadLocationsEvent()),
-      child: BlocBuilder<LocationsBloc, LocationsState>(
+      create: (context) => LocationsCubit(LocationsRepository()),
+      child: BlocBuilder<LocationsCubit, LocationsState>(
         builder: (context, state) {
           if (state is LocationsLoadingState) {
             return const Center(child: CircularProgressIndicator.adaptive());
