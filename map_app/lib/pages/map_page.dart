@@ -25,31 +25,39 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             'https://lh5.googleusercontent.com/p/AF1QipN9kjrOCsU5mxRRoJZV5sciGxtLePE7VYCwueKq=w408-h306-k-no',
         name: 'Place 1',
         address: 'Place 1, Canberra',
-        latlong: const LatLng(-35.265870, 149.100154)),
+        latlong: const LatLng(-35.265870, 149.100154),
+        type: LocationType.permanent),
     Location(
         imageURL:
             'https://lh5.googleusercontent.com/p/AF1QipNIj8sNrC0cKnWsFeVkMmqiHTTCUUGdbSZcSeDv=w408-h306-k-no',
         name: 'Place 2',
         address: 'Place 2, Canberra',
-        latlong: const LatLng(-35.271074, 149.090780)),
+        latlong: const LatLng(-35.271074, 149.090780),
+        type: LocationType.permanent),
     Location(
         imageURL:
             'https://lh5.googleusercontent.com/p/AF1QipNfdXZWUzopbO5IRBN8PupvcC76yY7Pkp2XPs3m=w408-h306-k-no',
         name: 'Place 3',
         address: 'Place 3, Canberra',
-        latlong: const LatLng(-35.277400, 149.101591)),
+        latlong: const LatLng(-35.277400, 149.101591),
+        type: LocationType.permanent),
   ];
 
   Future<Location> fetchLocationData(LatLng latlong) async {
+    return Location(
+        name: 'Random Spot',
+        address: await getAddress(latlong),
+        latlong: latlong,
+        type: LocationType.permanent);
+  }
+
+  Future<String> getAddress(LatLng latlong) async {
     final response = await http.get(Uri.parse(
         'https://api.mapbox.com/geocoding/v5/mapbox.places/${latlong.longitude},${latlong.latitude}.json?access_token=${AppLevelConstants.mbAccessToken}'));
 
     if (response.statusCode == 200) {
       Map<String, dynamic> responseJson = jsonDecode(response.body);
-      return Location(
-          name: responseJson['features'][0]['text'],
-          address: responseJson['features'][0]['place_name'],
-          latlong: latlong);
+      return responseJson['features'][0]['place_name'];
     } else {
       throw Exception('Failed to load location data');
     }
@@ -70,7 +78,10 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
       LatLng randomLatLong = LatLng(
           Utils.generateRandomNumberInRangeWithDecimals(-35.515, -35.118, 6),
           Utils.generateRandomNumberInRangeWithDecimals(148.921, 149.26, 6));
-      fetchLocationData(randomLatLong).then((value) => locations.add(value));
+      fetchLocationData(randomLatLong).then((newLocation) => {
+            newLocation.name = '${newLocation.name!} ${i.toString()}',
+            locations.add(newLocation)
+          });
     }
   }
 
@@ -112,11 +123,31 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
       children: [
         FlutterMap(
           mapController: mapController,
+          nonRotatedChildren: [],
           options: MapOptions(
             minZoom: 3,
             maxZoom: 18,
             zoom: 13,
             center: currentLocation,
+            onLongPress: (tapPosition, point) {
+              getAddress(point).then(
+                (address) {
+                  setState(() {
+                    Location newSpot = Location(
+                      name: "New Spot",
+                      address: address,
+                      latlong: point,
+                      type: LocationType.userDefined,
+                    );
+                    locations.add(newSpot);
+                    currentPage = locations.indexOf(newSpot);
+                    pageController.jumpToPage(
+                      locations.indexOf(newSpot) + 1,
+                    );
+                  });
+                },
+              );
+            },
             onTap: (tapPosition, point) {
               setState(() {
                 currentLocation = point;
@@ -156,9 +187,11 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                           child: AnimatedOpacity(
                             duration: const Duration(milliseconds: 100),
                             opacity: currentPage == i ? 1 : 0.3,
-                            child: const Icon(
-                              Icons.not_listed_location,
-                              color: Colors.blueAccent,
+                            child: Icon(
+                              Icons.whatshot,
+                              color: locations[i].type == LocationType.permanent
+                                  ? Colors.blueAccent
+                                  : Colors.amberAccent,
                               size: 50,
                             ),
                           ),

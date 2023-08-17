@@ -77,15 +77,19 @@ class LocationCard extends StatelessWidget {
                   clipBehavior: Clip.hardEdge,
                   decoration:
                       BoxDecoration(borderRadius: BorderRadius.circular(8)),
-                  child: Image.network(
-                    location.imageURL ?? '',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey,
-                      );
-                    },
-                  ),
+                  child: location.imageURL != null
+                      ? Image.network(
+                          location.imageURL!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey,
+                            );
+                          },
+                        )
+                      : Container(
+                          color: Colors.grey,
+                        ),
                 ),
               ),
             ],
