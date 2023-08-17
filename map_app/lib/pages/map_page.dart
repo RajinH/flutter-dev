@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -5,6 +7,7 @@ import 'package:map_app/shared/constants.dart';
 import 'package:map_app/shared/location.dart';
 import 'package:map_app/shared/utils.dart';
 import 'package:map_app/widgets/location_card.dart';
+import 'package:http/http.dart' as http;
 
 class MapPage extends StatefulWidget {
   const MapPage({
@@ -37,6 +40,21 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
         latlong: const LatLng(-35.277400, 149.101591)),
   ];
 
+  Future<Location> fetchLocationData(LatLng latlong) async {
+    final response = await http.get(Uri.parse(
+        'https://api.mapbox.com/geocoding/v5/mapbox.places/${latlong.longitude},${latlong.latitude}.json?access_token=${AppLevelConstants.mbAccessToken}'));
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseJson = jsonDecode(response.body);
+      return Location(
+          name: responseJson['features'][0]['text'],
+          address: responseJson['features'][0]['place_name'],
+          latlong: latlong);
+    } else {
+      throw Exception('Failed to load location data');
+    }
+  }
+
   late final MapController mapController;
   final pageController = PageController();
 
@@ -49,14 +67,10 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     mapController = MapController();
 
     for (var i = 0; i < 20; i++) {
-      locations.add(Location(
-          name: 'Random Place $i',
-          address: 'Random Place $i, Canberra',
-          latlong: LatLng(
-              Utils.generateRandomNumberInRangeWithDecimals(
-                  -35.515, -35.118, 6),
-              Utils.generateRandomNumberInRangeWithDecimals(
-                  148.921, 149.26, 6))));
+      LatLng randomLatLong = LatLng(
+          Utils.generateRandomNumberInRangeWithDecimals(-35.515, -35.118, 6),
+          Utils.generateRandomNumberInRangeWithDecimals(148.921, 149.26, 6));
+      fetchLocationData(randomLatLong).then((value) => locations.add(value));
     }
   }
 
@@ -106,6 +120,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             onTap: (tapPosition, point) {
               setState(() {
                 currentLocation = point;
+                fetchLocationData(currentLocation);
                 _animatedMapMove(currentLocation, 13);
               });
             },
@@ -113,7 +128,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
           children: [
             TileLayer(
               urlTemplate: AppLevelConstants.mbShareURL,
-              additionalOptions: const {
+              additionalOptions: {
                 'mapStyleId': AppLevelConstants.mbStyleID,
                 'accessToken': AppLevelConstants.mbAccessToken
               },
