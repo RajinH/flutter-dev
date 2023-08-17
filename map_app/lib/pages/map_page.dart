@@ -1,13 +1,14 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:map_app/blocs/locations_bloc.dart';
+import 'package:map_app/blocs/locations_events.dart';
+import 'package:map_app/blocs/locations_states.dart';
+import 'package:map_app/repositories/locations_repo.dart';
 import 'package:map_app/shared/constants.dart';
-import 'package:map_app/shared/location.dart';
-import 'package:map_app/shared/utils.dart';
+import 'package:map_app/models/location.dart';
 import 'package:map_app/widgets/location_card.dart';
-import 'package:http/http.dart' as http;
 
 class MapPage extends StatefulWidget {
   const MapPage({
@@ -19,50 +20,6 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
-  final locations = [
-    Location(
-        imageURL:
-            'https://lh5.googleusercontent.com/p/AF1QipN9kjrOCsU5mxRRoJZV5sciGxtLePE7VYCwueKq=w408-h306-k-no',
-        name: 'Place 1',
-        address: 'Place 1, Canberra',
-        latlong: const LatLng(-35.265870, 149.100154),
-        type: LocationType.permanent),
-    Location(
-        imageURL:
-            'https://lh5.googleusercontent.com/p/AF1QipNIj8sNrC0cKnWsFeVkMmqiHTTCUUGdbSZcSeDv=w408-h306-k-no',
-        name: 'Place 2',
-        address: 'Place 2, Canberra',
-        latlong: const LatLng(-35.271074, 149.090780),
-        type: LocationType.permanent),
-    Location(
-        imageURL:
-            'https://lh5.googleusercontent.com/p/AF1QipNfdXZWUzopbO5IRBN8PupvcC76yY7Pkp2XPs3m=w408-h306-k-no',
-        name: 'Place 3',
-        address: 'Place 3, Canberra',
-        latlong: const LatLng(-35.277400, 149.101591),
-        type: LocationType.permanent),
-  ];
-
-  Future<Location> fetchLocationData(LatLng latlong) async {
-    return Location(
-        name: 'Random Spot',
-        address: await getAddress(latlong),
-        latlong: latlong,
-        type: LocationType.permanent);
-  }
-
-  Future<String> getAddress(LatLng latlong) async {
-    final response = await http.get(Uri.parse(
-        'https://api.mapbox.com/geocoding/v5/mapbox.places/${latlong.longitude},${latlong.latitude}.json?access_token=${AppLevelConstants.mbAccessToken}'));
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseJson = jsonDecode(response.body);
-      return responseJson['features'][0]['place_name'];
-    } else {
-      throw Exception('Failed to load location data');
-    }
-  }
-
   late final MapController mapController;
   final pageController = PageController();
 
@@ -73,16 +30,6 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     mapController = MapController();
-
-    for (var i = 0; i < 20; i++) {
-      LatLng randomLatLong = LatLng(
-          Utils.generateRandomNumberInRangeWithDecimals(-35.515, -35.118, 6),
-          Utils.generateRandomNumberInRangeWithDecimals(148.921, 149.26, 6));
-      fetchLocationData(randomLatLong).then((newLocation) => {
-            newLocation.name = '${newLocation.name!} ${i.toString()}',
-            locations.add(newLocation)
-          });
-    }
   }
 
   void _animatedMapMove(LatLng destLocation, double destZoom) {
@@ -119,116 +66,143 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        FlutterMap(
-          mapController: mapController,
-          nonRotatedChildren: [],
-          options: MapOptions(
-            minZoom: 3,
-            maxZoom: 18,
-            zoom: 13,
-            center: currentLocation,
-            onLongPress: (tapPosition, point) {
-              getAddress(point).then(
-                (address) {
-                  setState(() {
-                    Location newSpot = Location(
-                      name: "New Spot",
-                      address: address,
-                      latlong: point,
-                      type: LocationType.userDefined,
-                    );
-                    locations.add(newSpot);
-                    currentPage = locations.indexOf(newSpot);
-                    pageController.jumpToPage(
-                      locations.indexOf(newSpot) + 1,
-                    );
-                  });
-                },
-              );
-            },
-            onTap: (tapPosition, point) {
-              setState(() {
-                currentLocation = point;
-                fetchLocationData(currentLocation);
-                _animatedMapMove(currentLocation, 13);
-              });
-            },
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: AppLevelConstants.mbShareURL,
-              additionalOptions: {
-                'mapStyleId': AppLevelConstants.mbStyleID,
-                'accessToken': AppLevelConstants.mbAccessToken
-              },
-            ),
-            MarkerLayer(
-              markers: [
-                for (int i = 0; i < locations.length; i++)
-                  Marker(
-                    height: 60,
-                    width: 60,
-                    point: locations[i].latlong!,
-                    builder: (context) {
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            currentPage = i;
-                            pageController.jumpToPage(
-                              i,
-                            );
-                          });
-                        },
-                        child: AnimatedScale(
-                          duration: const Duration(milliseconds: 100),
-                          scale: currentPage == i ? 1 : 0.8,
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 100),
-                            opacity: currentPage == i ? 1 : 0.3,
-                            child: Icon(
-                              Icons.whatshot,
-                              color: locations[i].type == LocationType.permanent
-                                  ? Colors.blueAccent
-                                  : Colors.amberAccent,
-                              size: 50,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-              ],
-            )
-          ],
-        ),
-        Positioned(
-            left: 0,
-            right: 0,
-            top: 10,
-            child: SizedBox(
-              height: 200,
-              child: PageView.builder(
-                  controller: pageController,
-                  onPageChanged: (value) {
-                    setState(() {
-                      currentPage = value;
-                      currentLocation = locations[value].latlong!;
-                      _animatedMapMove(currentLocation, 13);
-                    });
-                  },
-                  itemCount: locations.length,
-                  itemBuilder: (_, index) {
-                    final location = locations[index];
+    return BlocProvider(
+      create: (context) =>
+          LocationsBloc(LocationsRepository())..add(LoadLocationsEvent()),
+      child: BlocBuilder<LocationsBloc, LocationsState>(
+        builder: (context, state) {
+          if (state is LocationsLoadingState) {
+            return const Center(child: CircularProgressIndicator.adaptive());
+          }
 
-                    return Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: LocationCard(location: location),
-                    );
-                  }),
-            )),
-      ],
+          if (state is LocationsErrorState) {
+            return const Center(
+              child: Text('Sorry Something Went Wrong :()'),
+            );
+          }
+
+          if (state is LocationsLoadedState) {
+            List<Location> locations = state.locations;
+
+            return Stack(
+              children: [
+                FlutterMap(
+                  mapController: mapController,
+                  nonRotatedChildren: [],
+                  options: MapOptions(
+                    minZoom: 3,
+                    maxZoom: 18,
+                    zoom: 13,
+                    center: currentLocation,
+                    // onLongPress: (tapPosition, point) {
+                    //   getAddress(point).then(
+                    //     (address) {
+                    //       setState(() {
+                    //         Location newSpot = Location(
+                    //           name: "New Spot",
+                    //           address: address,
+                    //           latlong: point,
+                    //           type: LocationType.userDefined,
+                    //         );
+                    //         locations.add(newSpot);
+                    //         currentPage = locations.indexOf(newSpot);
+                    //         pageController.jumpToPage(
+                    //           locations.indexOf(newSpot) + 1,
+                    //         );
+                    //       });
+                    //     },
+                    //   );
+                    // },
+                    onTap: (tapPosition, point) {
+                      setState(() {
+                        currentLocation = point;
+                        // fetchLocationData(currentLocation);
+                        _animatedMapMove(currentLocation, 13);
+                      });
+                    },
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: AppLevelConstants.mbShareURL,
+                      additionalOptions: {
+                        'mapStyleId': AppLevelConstants.mbStyleID,
+                        'accessToken': AppLevelConstants.mbAccessToken
+                      },
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        for (int i = 0; i < locations.length; i++)
+                          Marker(
+                            height: 60,
+                            width: 60,
+                            point: locations[i].latlong!,
+                            builder: (context) {
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    currentPage = i;
+                                    pageController.jumpToPage(
+                                      i,
+                                    );
+                                  });
+                                },
+                                child: AnimatedScale(
+                                  duration: const Duration(milliseconds: 100),
+                                  scale: currentPage == i ? 1 : 0.8,
+                                  child: AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 100),
+                                    opacity: currentPage == i ? 1 : 0.3,
+                                    child: Icon(
+                                      Icons.whatshot,
+                                      color: locations[i].type ==
+                                              LocationType.permanent
+                                          ? Colors.blueAccent
+                                          : Colors.amberAccent,
+                                      size: 50,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                      ],
+                    )
+                  ],
+                ),
+                Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 10,
+                    child: SizedBox(
+                      height: 200,
+                      child: PageView.builder(
+                          controller: pageController,
+                          onPageChanged: (value) {
+                            setState(() {
+                              currentPage = value;
+                              currentLocation = locations[value].latlong!;
+                              _animatedMapMove(currentLocation, 13);
+                            });
+                          },
+                          itemCount: locations.length,
+                          itemBuilder: (_, index) {
+                            final location = locations[index];
+
+                            return Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: LocationCard(location: location),
+                            );
+                          }),
+                    )),
+              ],
+            );
+          } else {
+            return const Center(
+              child: Text('Sorry Something Went Wrong :()'),
+            );
+          }
+        },
+      ),
     );
   }
 }

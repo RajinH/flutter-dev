@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:map_app/shared/location.dart';
+import 'package:map_app/models/location.dart';
 import 'package:map_app/shared/utils.dart';
 
 class LocationCard extends StatelessWidget {
