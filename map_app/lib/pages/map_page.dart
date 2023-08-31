@@ -7,6 +7,7 @@ import 'package:map_app/blocs/locations_states.dart';
 import 'package:map_app/repositories/locations_repo.dart';
 import 'package:map_app/shared/constants.dart';
 import 'package:map_app/models/location.dart';
+import 'package:map_app/widgets/information_sheet.dart';
 import 'package:map_app/widgets/location_card.dart';
 
 class MapPage extends StatefulWidget {
@@ -63,6 +64,17 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     controller.forward();
   }
 
+  void onShowBottomSheet(Location location) {
+    showBottomSheet(
+      context: context,
+      builder: (context) {
+        return InformationSheet(
+          location: location,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -86,31 +98,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               children: [
                 FlutterMap(
                   mapController: mapController,
-                  nonRotatedChildren: [],
+                  nonRotatedChildren: const [],
                   options: MapOptions(
                     minZoom: 3,
                     maxZoom: 18,
                     zoom: 13,
                     center: currentLocation,
-                    // onLongPress: (tapPosition, point) {
-                    //   getAddress(point).then(
-                    //     (address) {
-                    //       setState(() {
-                    //         Location newSpot = Location(
-                    //           name: "New Spot",
-                    //           address: address,
-                    //           latlong: point,
-                    //           type: LocationType.userDefined,
-                    //         );
-                    //         locations.add(newSpot);
-                    //         currentPage = locations.indexOf(newSpot);
-                    //         pageController.jumpToPage(
-                    //           locations.indexOf(newSpot) + 1,
-                    //         );
-                    //       });
-                    //     },
-                    //   );
-                    // },
                     onTap: (tapPosition, point) {
                       setState(() {
                         currentLocation = point;
@@ -179,6 +172,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                             setState(() {
                               currentPage = value;
                               currentLocation = locations[value].latlong!;
+                              Navigator.of(context).maybePop();
                               _animatedMapMove(currentLocation, 13);
                             });
                           },
@@ -188,7 +182,10 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
                             return Padding(
                               padding: const EdgeInsets.all(20),
-                              child: LocationCard(location: location),
+                              child: LocationCard(
+                                location: location,
+                                onTap: () => {onShowBottomSheet(location)},
+                              ),
                             );
                           }),
                     )),
