@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:map_app/pages/map_page.dart';
+import 'package:map_app/shared/routes.dart';
 
 void main() async {
   await dotenv.load(fileName: '.env');
@@ -22,17 +22,8 @@ class MainApp extends StatelessWidget {
 
     return MaterialApp(
       theme: buildTheme(Brightness.light),
-      home: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.blueAccent,
-          elevation: 0,
-          title: const Text(
-            'Maps Integration',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        body: const MapPage(),
-      ),
+      initialRoute: '/',
+      routes: AppRoutes.routes,
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:latlong2/latlong.dart';
-import 'package:map_app/blocs/locations_states.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:map_app/blocs/locations/locations_states.dart';
 import 'package:map_app/repositories/locations_repo.dart';
 import 'package:map_app/shared/utils.dart';
 
