@@ -115,6 +115,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 _emailController.text.trim(),
                                 _passwordController.text
                                     .trim())); // TODO: fix this
+                            Navigator.of(context).pop();
                           },
                           style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(

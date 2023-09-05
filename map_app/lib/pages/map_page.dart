@@ -96,16 +96,6 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             'Maps Integration',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          actions: [
-            ElevatedButton(
-                onPressed: () {
-                  context.read<AuthBloc>().add(const SignOutRequested());
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => const LogInPage(),
-                  ));
-                },
-                child: const Text('Log Out'))
-          ],
         ),
         body: BlocProvider(
           create: (context) => LocationsCubit(LocationsRepository()),
@@ -195,7 +185,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                     Positioned(
                         left: 0,
                         right: 0,
-                        top: 10,
+                        top: 25,
                         child: SizedBox(
                           height: 200,
                           child: PageView.builder(
@@ -229,6 +219,19 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                 );
                               }),
                         )),
+                    Positioned(
+                        right: 22,
+                        child: ElevatedButton(
+                            onPressed: () {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(const SignOutRequested());
+                              Navigator.of(context)
+                                  .pushReplacement(MaterialPageRoute(
+                                builder: (context) => const LogInPage(),
+                              ));
+                            },
+                            child: const Text('Log Out'))),
                   ],
                 );
               } else {
