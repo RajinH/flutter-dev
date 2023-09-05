@@ -1,10 +1,23 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:map_app/shared/routes.dart';
+import 'package:map_app/blocs/authentication/auth_bloc.dart';
+import 'package:map_app/blocs/authentication/auth_event.dart';
+import 'package:map_app/blocs/authentication/auth_state.dart';
+import 'package:map_app/pages/login_page.dart';
+import 'package:map_app/pages/map_page.dart';
+import 'package:map_app/repositories/auth_repository.dart';
 
 void main() async {
   await dotenv.load(fileName: '.env');
+
+  WidgetsFlutterBinding
+      .ensureInitialized(); // need this for firebase initialisation (https://stackoverflow.com/questions/63873338/what-does-widgetsflutterbinding-ensureinitialized-do)
+
+  await Firebase.initializeApp();
+
   runApp(const MainApp());
 }
 
@@ -20,10 +33,24 @@ class MainApp extends StatelessWidget {
       );
     }
 
-    return MaterialApp(
-      theme: buildTheme(Brightness.light),
-      initialRoute: '/',
-      routes: AppRoutes.routes,
+    return RepositoryProvider(
+      create: (context) => AuthRepository(),
+      child: BlocProvider(
+        create: (context) => AuthBloc(
+            authRepository: RepositoryProvider.of<AuthRepository>(context))
+          ..add(const AuthenticationRequested()),
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: buildTheme(Brightness.light),
+              home: state is AuthenticatedAuth
+                  ? const MapPage()
+                  : const LogInPage(),
+            );
+          },
+        ),
+      ),
     );
   }
 }

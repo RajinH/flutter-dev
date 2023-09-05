@@ -1,7 +1,7 @@
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:map_app/blocs/locations/locations_states.dart';
-import 'package:map_app/repositories/locations_repo.dart';
+import 'package:map_app/repositories/locations_repository.dart';
 import 'package:map_app/shared/utils.dart';
 
 class LocationsCubit extends Cubit<LocationsState> {
@@ -15,7 +15,7 @@ class LocationsCubit extends Cubit<LocationsState> {
     emit(LocationsLoadingState());
     try {
       List<LatLng> randomLatLongs = [];
-      for (var i = 0; i < 20; i++) {
+      for (var i = 0; i < 3; i++) {
         randomLatLongs.add(
           LatLng(
             Utils.generateRandomNumberInRangeWithDecimals(-35.515, -35.118, 6),

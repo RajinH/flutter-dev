@@ -1,52 +1,48 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthRepository {
-  final FirebaseAuth _firebaseAuth;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  AuthRepository({FirebaseAuth? firebaseAuth})
-      : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+  Stream<User?> getCurrentUser() {
+    return _firebaseAuth.authStateChanges();
+  }
 
-  // listening to current user state
-  Stream<User?> get user => _firebaseAuth.userChanges();
-
-  // sign up using firebase auth
-  Future<User?> signUp({
-    required String email,
-    required String password,
-  }) async {
+  // firebase sign in
+  Future<void> signIn({required String email, required String password}) async {
     try {
-      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final user = credential.user;
-      return user;
-    } catch (_) {
-      throw Exception('user creation problem');
+      _firebaseAuth.signInWithEmailAndPassword(
+          email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        throw Exception('Account does not exist');
+      }
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 
-  // log in using firebase auth
-  Future<User?> logIn({
-    required String email,
-    required String password,
-  }) async {
+  // firebase sign up
+  Future<void> signUp({required String email, required String password}) async {
     try {
-      final credential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final user = credential.user;
-      return user;
-    } catch (_) {
-      throw Exception('user log in problem');
+      _firebaseAuth.createUserWithEmailAndPassword(
+          email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        throw Exception('Weak password');
+      } else if (e.code == 'email-already-in-use') {
+        throw Exception('The email is in use');
+      }
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 
-  // sign out using firebase auth
+  // firebase sign out
   Future<void> signOut() async {
-    await _firebaseAuth.signOut();
+    try {
+      await _firebaseAuth.signOut();
+    } catch (e) {
+      throw Exception(e);
+    }
   }
 }

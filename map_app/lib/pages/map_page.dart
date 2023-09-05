@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:map_app/blocs/authentication/auth_bloc.dart';
+import 'package:map_app/blocs/authentication/auth_event.dart';
+import 'package:map_app/blocs/authentication/auth_state.dart';
 import 'package:map_app/blocs/locations/locations_cubit.dart';
 import 'package:map_app/blocs/locations/locations_states.dart';
-import 'package:map_app/repositories/locations_repo.dart';
+import 'package:map_app/pages/login_page.dart';
+import 'package:map_app/repositories/locations_repository.dart';
 import 'package:map_app/shared/constants.dart';
 import 'package:map_app/models/location.dart';
 import 'package:map_app/widgets/information_sheet.dart';
@@ -21,7 +25,7 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   late final MapController mapController;
-  final pageController = PageController();
+  late final PageController pageController;
 
   int currentPage = 0;
   LatLng currentLocation = const LatLng(-35.269310, 149.097613);
@@ -29,7 +33,15 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    pageController = PageController();
     mapController = MapController();
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    mapController.dispose();
+    super.dispose();
   }
 
   void _animatedMapMove(LatLng destLocation, double destZoom) {
@@ -66,144 +78,166 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        elevation: 0,
-        title: const Text(
-          'Maps Integration',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is UnauthenticatedAuth) {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => const LogInPage(),
+          ));
+        } else if (state is AuthenticatedAuth) {
+          print('current user: ${state.firebaseUser?.displayName ?? 'hehe'}');
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.blueAccent,
+          elevation: 0,
+          title: const Text(
+            'Maps Integration',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            ElevatedButton(
+                onPressed: () {
+                  context.read<AuthBloc>().add(const SignOutRequested());
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (context) => const LogInPage(),
+                  ));
+                },
+                child: const Text('Log Out'))
+          ],
         ),
-      ),
-      body: BlocProvider(
-        create: (context) => LocationsCubit(LocationsRepository()),
-        child: BlocBuilder<LocationsCubit, LocationsState>(
-          builder: (context, state) {
-            if (state is LocationsLoadingState) {
-              return const Center(child: CircularProgressIndicator.adaptive());
-            }
+        body: BlocProvider(
+          create: (context) => LocationsCubit(LocationsRepository()),
+          child: BlocBuilder<LocationsCubit, LocationsState>(
+            builder: (context, state) {
+              if (state is LocationsLoadingState) {
+                return const Center(
+                    child: CircularProgressIndicator.adaptive());
+              }
 
-            if (state is LocationsErrorState) {
-              return const Center(
-                child: Text('Sorry Something Went Wrong :('),
-              );
-            }
+              if (state is LocationsErrorState) {
+                return const Center(
+                  child: Text('Sorry Something Went Wrong :('),
+                );
+              }
 
-            if (state is LocationsLoadedState) {
-              List<Location> locations = state.locations;
+              if (state is LocationsLoadedState) {
+                List<Location> locations = state.locations;
 
-              return Stack(
-                children: [
-                  FlutterMap(
-                    mapController: mapController,
-                    nonRotatedChildren: const [],
-                    options: MapOptions(
-                      minZoom: 3,
-                      maxZoom: 18,
-                      zoom: 13,
-                      center: currentLocation,
-                      onTap: (tapPosition, point) {
-                        setState(() {
-                          currentLocation = point;
-                          _animatedMapMove(currentLocation, 13);
-                        });
-                      },
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: AppLevelConstants.mbShareURL,
-                        additionalOptions: {
-                          'mapStyleId': AppLevelConstants.mbStyleID,
-                          'accessToken': AppLevelConstants.mbAccessToken
+                return Stack(
+                  children: [
+                    FlutterMap(
+                      mapController: mapController,
+                      nonRotatedChildren: const [],
+                      options: MapOptions(
+                        minZoom: 3,
+                        maxZoom: 18,
+                        zoom: 13,
+                        center: currentLocation,
+                        onTap: (tapPosition, point) {
+                          setState(() {
+                            currentLocation = point;
+                            _animatedMapMove(currentLocation, 13);
+                          });
                         },
                       ),
-                      MarkerLayer(
-                        markers: [
-                          for (int i = 0; i < locations.length; i++)
-                            Marker(
-                              height: 60,
-                              width: 60,
-                              point: locations[i].latlong!,
-                              builder: (context) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      currentPage = i;
-                                      pageController.jumpToPage(
-                                        i,
-                                      );
-                                    });
-                                  },
-                                  child: AnimatedScale(
-                                    duration: const Duration(milliseconds: 100),
-                                    scale: currentPage == i ? 1 : 0.8,
-                                    child: AnimatedOpacity(
+                      children: [
+                        TileLayer(
+                          urlTemplate: AppLevelConstants.mbShareURL,
+                          additionalOptions: {
+                            'mapStyleId': AppLevelConstants.mbStyleID,
+                            'accessToken': AppLevelConstants.mbAccessToken
+                          },
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            for (int i = 0; i < locations.length; i++)
+                              Marker(
+                                height: 60,
+                                width: 60,
+                                point: locations[i].latlong!,
+                                builder: (context) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        currentPage = i;
+                                        pageController.jumpToPage(
+                                          i,
+                                        );
+                                      });
+                                    },
+                                    child: AnimatedScale(
                                       duration:
                                           const Duration(milliseconds: 100),
-                                      opacity: currentPage == i ? 1 : 0.3,
-                                      child: Icon(
-                                        Icons.whatshot,
-                                        color: locations[i].type ==
-                                                LocationType.permanent
-                                            ? Colors.blueAccent
-                                            : Colors.amberAccent,
-                                        size: 50,
+                                      scale: currentPage == i ? 1 : 0.8,
+                                      child: AnimatedOpacity(
+                                        duration:
+                                            const Duration(milliseconds: 100),
+                                        opacity: currentPage == i ? 1 : 0.3,
+                                        child: Icon(
+                                          Icons.whatshot,
+                                          color: locations[i].type ==
+                                                  LocationType.permanent
+                                              ? Colors.blueAccent
+                                              : Colors.amberAccent,
+                                          size: 50,
+                                        ),
                                       ),
                                     ),
+                                  );
+                                },
+                              )
+                          ],
+                        )
+                      ],
+                    ),
+                    Positioned(
+                        left: 0,
+                        right: 0,
+                        top: 10,
+                        child: SizedBox(
+                          height: 200,
+                          child: PageView.builder(
+                              controller: pageController,
+                              onPageChanged: (value) {
+                                setState(() {
+                                  currentPage = value;
+                                  currentLocation = locations[value].latlong!;
+                                  _animatedMapMove(currentLocation, 13);
+                                });
+                              },
+                              itemCount: locations.length,
+                              itemBuilder: (_, index) {
+                                final location = locations[index];
+
+                                return Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: LocationCard(
+                                    location: location,
+                                    onTap: () => {
+                                      showBottomSheet(
+                                        context: context,
+                                        builder: (context) {
+                                          return InformationSheet(
+                                            location: location,
+                                          );
+                                        },
+                                      )
+                                    },
                                   ),
                                 );
-                              },
-                            )
-                        ],
-                      )
-                    ],
-                  ),
-                  Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 10,
-                      child: SizedBox(
-                        height: 200,
-                        child: PageView.builder(
-                            controller: pageController,
-                            onPageChanged: (value) {
-                              setState(() {
-                                currentPage = value;
-                                currentLocation = locations[value].latlong!;
-                                Navigator.of(context).maybePop();
-                                _animatedMapMove(currentLocation, 13);
-                              });
-                            },
-                            itemCount: locations.length,
-                            itemBuilder: (_, index) {
-                              final location = locations[index];
-
-                              return Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: LocationCard(
-                                  location: location,
-                                  onTap: () => {
-                                    showBottomSheet(
-                                      context: context,
-                                      builder: (context) {
-                                        return InformationSheet(
-                                          location: location,
-                                        );
-                                      },
-                                    )
-                                  },
-                                ),
-                              );
-                            }),
-                      )),
-                ],
-              );
-            } else {
-              return const Center(
-                child: Text('Sorry Something Went Wrong :()'),
-              );
-            }
-          },
+                              }),
+                        )),
+                  ],
+                );
+              } else {
+                return const Center(
+                  child: Text('Sorry Something Went Wrong :()'),
+                );
+              }
+            },
+          ),
         ),
       ),
     );
