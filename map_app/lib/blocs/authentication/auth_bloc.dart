@@ -6,38 +6,40 @@ import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthRepository authRepository;
+  final AuthRepository _authRepository;
 
-  AuthBloc({required this.authRepository}) : super(UnauthenticatedAuth()) {
+  AuthBloc({required AuthRepository authRepository})
+      : _authRepository = authRepository,
+        super(const UnauthenticatedAuth()) {
     on<AuthenticationRequested>((event, emit) async {
       emit(LoadingAuth());
-      User? user = await authRepository.getCurrentUser().first;
+      User? user = await _authRepository.getCurrentUser().first;
       if (user != null) {
         emit(AuthenticatedAuth(firebaseUser: user));
       }
-      emit(UnauthenticatedAuth());
+      emit(const UnauthenticatedAuth());
     });
 
     on<SignUpRequested>(
       (event, emit) async {
         emit(LoadingAuth());
         try {
-          await authRepository.signUp(
+          await _authRepository.signUp(
               email: event.email, password: event.password);
-          User? user = await authRepository.getCurrentUser().first;
+          User? user = await _authRepository.getCurrentUser().first;
           if (user != null) {
             emit(AuthenticatedAuth(firebaseUser: user));
           }
-        } catch (e) {
-          emit(UnauthenticatedAuth());
+        } on Exception catch (e) {
+          emit(UnauthenticatedAuth(exception: e));
         }
       },
     );
 
     on<SignOutRequested>(
       (event, emit) async {
-        await authRepository.signOut();
-        emit(UnauthenticatedAuth());
+        await _authRepository.signOut();
+        emit(const UnauthenticatedAuth());
       },
     );
 
@@ -45,14 +47,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (event, emit) async {
         emit(LoadingAuth());
         try {
-          await authRepository.signIn(
+          await _authRepository.signIn(
               email: event.email, password: event.password);
-          User? user = await authRepository.getCurrentUser().first;
+          User? user = await _authRepository.getCurrentUser().first;
           if (user != null) {
             emit(AuthenticatedAuth(firebaseUser: user));
           }
-        } catch (e) {
-          emit(UnauthenticatedAuth());
+        } on Exception catch (e) {
+          emit(UnauthenticatedAuth(exception: e));
         }
       },
     );

@@ -14,6 +14,9 @@ class LoadingAuth extends AuthState {
 }
 
 class UnauthenticatedAuth extends AuthState {
+  final Exception? exception;
+  const UnauthenticatedAuth({this.exception});
+
   @override
   List<Object?> get props => [];
 }

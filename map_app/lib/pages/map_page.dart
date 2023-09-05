@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -84,8 +85,6 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
           Navigator.of(context).pushReplacement(MaterialPageRoute(
             builder: (context) => const LogInPage(),
           ));
-        } else if (state is AuthenticatedAuth) {
-          print('current user: ${state.firebaseUser?.displayName ?? 'hehe'}');
         }
       },
       child: Scaffold(
@@ -185,7 +184,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                     Positioned(
                         left: 0,
                         right: 0,
-                        top: 25,
+                        top: 110,
                         child: SizedBox(
                           height: 200,
                           child: PageView.builder(
@@ -219,19 +218,72 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                 );
                               }),
                         )),
-                    Positioned(
-                        right: 22,
-                        child: ElevatedButton(
-                            onPressed: () {
-                              context
-                                  .read<AuthBloc>()
-                                  .add(const SignOutRequested());
-                              Navigator.of(context)
-                                  .pushReplacement(MaterialPageRoute(
-                                builder: (context) => const LogInPage(),
+                    BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) {
+                        if (state is AuthenticatedAuth) {
+                          User? user = state.firebaseUser;
+
+                          return Positioned(
+                              top: 10,
+                              right: 22,
+                              child: SizedBox(
+                                height: 100,
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15)),
+                                  elevation: 5,
+                                  color: Colors.white,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: IntrinsicWidth(
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                children: [
+                                                  Text(
+                                                    user?.email ??
+                                                        'Unknown Name',
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(
+                                                width: 20,
+                                              ),
+                                              Expanded(
+                                                child: ElevatedButton(
+                                                    onPressed: () {
+                                                      context.read<AuthBloc>().add(
+                                                          const SignOutRequested());
+                                                      Navigator.of(context)
+                                                          .pushReplacement(
+                                                              MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const LogInPage(),
+                                                      ));
+                                                    },
+                                                    child:
+                                                        const Text('Log Out')),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ));
-                            },
-                            child: const Text('Log Out'))),
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
                   ],
                 );
               } else {

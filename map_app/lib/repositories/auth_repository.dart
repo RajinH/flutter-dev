@@ -10,30 +10,32 @@ class AuthRepository {
   // firebase sign in
   Future<void> signIn({required String email, required String password}) async {
     try {
-      _firebaseAuth.signInWithEmailAndPassword(
+      await _firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        throw Exception('Account does not exist');
+        throw UserNotFoundException();
+      } else if (e.code == 'wrong-password') {
+        throw WrongPasswordException();
+      } else if (e.code == 'user-disabled') {
+        throw UserDisabledException();
       }
     } catch (e) {
-      throw Exception(e.toString());
+      throw Exception(e);
     }
   }
 
   // firebase sign up
   Future<void> signUp({required String email, required String password}) async {
     try {
-      _firebaseAuth.createUserWithEmailAndPassword(
+      await _firebaseAuth.createUserWithEmailAndPassword(
           email: email, password: password);
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        throw Exception('Weak password');
-      } else if (e.code == 'email-already-in-use') {
-        throw Exception('The email is in use');
+      if (e.code == 'email-already-in-use') {
+        throw EmailInUseException();
       }
     } catch (e) {
-      throw Exception(e.toString());
+      throw Exception(e);
     }
   }
 
@@ -46,3 +48,11 @@ class AuthRepository {
     }
   }
 }
+
+class WrongPasswordException implements Exception {}
+
+class UserDisabledException implements Exception {}
+
+class UserNotFoundException implements Exception {}
+
+class EmailInUseException implements Exception {}
