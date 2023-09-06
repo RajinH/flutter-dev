@@ -16,8 +16,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       User? user = await _authRepository.getCurrentUser().first;
       if (user != null) {
         emit(AuthenticatedAuth(firebaseUser: user));
+      } else {
+        emit(const UnauthenticatedAuth());
       }
-      emit(const UnauthenticatedAuth());
     });
 
     on<SignUpRequested>(

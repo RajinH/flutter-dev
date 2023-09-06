@@ -14,7 +14,7 @@ class InformationSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 0.4 * MediaQuery.of(context).size.height,
+      height: 0.35 * MediaQuery.of(context).size.height,
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

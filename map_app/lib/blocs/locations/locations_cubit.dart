@@ -27,7 +27,7 @@ class LocationsCubit extends Cubit<LocationsState> {
       final locations = await _locationsRepository.getLocations(randomLatLongs);
       emit(LocationsLoadedState(locations));
     } catch (e) {
-      emit(LocationsErrorState(e.toString()));
+      if (!isClosed) emit(LocationsErrorState(e.toString()));
     }
   }
 }

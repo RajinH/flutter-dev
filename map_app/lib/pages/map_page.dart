@@ -79,6 +79,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    //FirebaseAuth.instance.signOut();
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is UnauthenticatedAuth) {
@@ -182,11 +183,10 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                       ],
                     ),
                     Positioned(
-                        left: 0,
-                        right: 0,
                         top: 110,
                         child: SizedBox(
                           height: 200,
+                          width: MediaQuery.of(context).size.width,
                           child: PageView.builder(
                               controller: pageController,
                               onPageChanged: (value) {
@@ -225,56 +225,88 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
                           return Positioned(
                               top: 10,
-                              right: 22,
-                              child: SizedBox(
+                              child: Container(
                                 height: 100,
+                                width: MediaQuery.of(context).size.width,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
                                 child: Card(
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(15)),
-                                  elevation: 5,
-                                  color: Colors.white,
+                                  elevation: 0,
+                                  color: const Color.fromARGB(255, 37, 37, 37),
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
-                                    child: IntrinsicWidth(
-                                      child: Column(
-                                        children: [
-                                          Row(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor: Colors.blueAccent,
+                                          foregroundColor: Colors.blueAccent,
+                                          child: Text(
+                                            user?.email?[0] ?? 'U',
+                                            style: const TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.center,
                                             children: [
-                                              Column(
-                                                children: [
-                                                  Text(
-                                                    user?.email ??
-                                                        'Unknown Name',
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                ],
+                                              const Text(
+                                                'Email',
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.white,
+                                                    fontWeight:
+                                                        FontWeight.bold),
                                               ),
-                                              const SizedBox(
-                                                width: 20,
-                                              ),
-                                              Expanded(
-                                                child: ElevatedButton(
-                                                    onPressed: () {
-                                                      context.read<AuthBloc>().add(
-                                                          const SignOutRequested());
-                                                      Navigator.of(context)
-                                                          .pushReplacement(
-                                                              MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            const LogInPage(),
-                                                      ));
-                                                    },
-                                                    child:
-                                                        const Text('Log Out')),
+                                              Text(
+                                                user?.email ?? 'Unknown Name',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.white,
+                                                    fontWeight:
+                                                        FontWeight.w400),
                                               ),
                                             ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
+                                        Expanded(
+                                          child: ElevatedButton(
+                                              onPressed: () {
+                                                context.read<AuthBloc>().add(
+                                                    const SignOutRequested());
+                                                Navigator.of(context)
+                                                    .pushReplacement(
+                                                        MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const LogInPage(),
+                                                ));
+                                              },
+                                              child: const Text(
+                                                'Log Out',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
