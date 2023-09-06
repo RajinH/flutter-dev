@@ -6,8 +6,11 @@ Users can get directions, ratings, and randomised descriptions of these location
 
 ## Screenshots
 
-<img width=360 src="https://github.com/RajinH/flutter-dev/assets/38574408/1519c4a6-182f-4f34-9283-4af6c34f93c5">
-<img width=360 src="https://github.com/RajinH/flutter-dev/assets/38574408/f665938e-8ad2-406b-911b-28f06c3e81e6">
+<img width=200 src="https://github.com/RajinH/flutter-dev/assets/38574408/585391cb-afe6-45b3-9f2c-a4760fb528f7">
+<img width=200 src="https://github.com/RajinH/flutter-dev/assets/38574408/0f076e51-2dde-46c4-b3cb-7425e2764b8f">
+<img width=200 src="https://github.com/RajinH/flutter-dev/assets/38574408/27aa439d-a926-4e35-90c5-f366f38b1549">
+<img width=200 src="https://github.com/RajinH/flutter-dev/assets/38574408/dd0bf3e3-a4ca-4251-9e6a-b049b66cae32">
+
 
 ## Video Demo
 
