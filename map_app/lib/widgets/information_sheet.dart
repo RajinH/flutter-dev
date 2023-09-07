@@ -21,10 +21,10 @@ class InformationSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             color: Colors.blueAccent,
             child: const Icon(
-              Icons.swipe_down,
+              Icons.keyboard_double_arrow_down_sharp,
               color: Colors.white,
             ),
           ),

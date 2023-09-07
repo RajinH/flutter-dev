@@ -103,80 +103,100 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
         drawer: Drawer(
             child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 30),
-                child: Text(
-                  'Account Settings',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                ),
-              ),
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  if (state is AuthenticatedAuth) {
-                    User? user = state.firebaseUser;
-                    return AccountCard(user: user);
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
-              ),
-              const SizedBox(
-                height: 5,
-              ),
-              IntrinsicHeight(
-                child: Row(
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is! AuthenticatedAuth) {
+                return const SizedBox.shrink();
+              } else {
+                User? user = state.firebaseUser;
+
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[800],
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10))),
-                        onPressed: () {
-                          context
-                              .read<AuthBloc>()
-                              .add(const SignOutRequested());
-                          Navigator.of(context)
-                              .pushReplacement(MaterialPageRoute(
-                            builder: (context) => const LogInPage(),
-                          ));
-                        },
-                        child: const Text(
-                          'Log Out',
-                          style: TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.bold),
-                        )),
-                    const SizedBox(
-                      width: 10,
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 30),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Welcome, ${user?.email?.split('@').first.toUpperCase()}',
+                              style: const TextStyle(
+                                  fontSize: 17, fontWeight: FontWeight.bold),
+                            ),
+                            InkWell(
+                                onTap: () => {},
+                                child: const Icon(Icons.settings))
+                          ],
+                        ),
+                      ),
                     ),
-                    ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10))),
-                        onPressed: () {
-                          context
-                              .read<AuthBloc>()
-                              .add(const AccountDeleteRequested());
-                          Navigator.of(context)
-                              .pushReplacement(MaterialPageRoute(
-                            builder: (context) => const LogInPage(),
-                          ));
-                        },
-                        child: const Text(
-                          'Delete Account',
-                          style: TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.bold),
-                        )),
+                    BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) {
+                        if (state is AuthenticatedAuth) {
+                          return AccountCard(user: user);
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    IntrinsicHeight(
+                      child: Row(
+                        children: [
+                          ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey[800],
+                                  elevation: 3,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10))),
+                              onPressed: () {
+                                context
+                                    .read<AuthBloc>()
+                                    .add(const SignOutRequested());
+                                Navigator.of(context)
+                                    .pushReplacement(MaterialPageRoute(
+                                  builder: (context) => const LogInPage(),
+                                ));
+                              },
+                              child: const Text(
+                                'Log Out',
+                                style: TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.bold),
+                              )),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.redAccent,
+                                  elevation: 3,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10))),
+                              onPressed: () {
+                                context
+                                    .read<AuthBloc>()
+                                    .add(const AccountDeleteRequested());
+                                Navigator.of(context)
+                                    .pushReplacement(MaterialPageRoute(
+                                  builder: (context) => const LogInPage(),
+                                ));
+                              },
+                              child: const Text(
+                                'Delete Account',
+                                style: TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.bold),
+                              )),
+                        ],
+                      ),
+                    )
                   ],
-                ),
-              )
-            ],
+                );
+              }
+            },
           ),
         )),
         body: BlocProvider(
