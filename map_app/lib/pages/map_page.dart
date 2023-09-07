@@ -48,7 +48,8 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
   void _animatedMapMove(LatLng destLocation, double destZoom) {
     final latTween = Tween<double>(
-        begin: mapController.center.latitude, end: destLocation.latitude);
+        begin: mapController.center.latitude,
+        end: destLocation.latitude - 0.0045);
     final lngTween = Tween<double>(
         begin: mapController.center.longitude, end: destLocation.longitude);
     final zoomTween = Tween<double>(begin: mapController.zoom, end: destZoom);
