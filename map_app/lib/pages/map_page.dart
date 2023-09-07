@@ -15,6 +15,7 @@ import 'package:map_app/models/location.dart';
 import 'package:map_app/widgets/account_card.dart';
 import 'package:map_app/widgets/information_sheet.dart';
 import 'package:map_app/widgets/location_card.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({
@@ -224,41 +225,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                         MarkerLayer(
                           markers: [
                             for (int i = 0; i < locations.length; i++)
-                              Marker(
-                                height: 60,
-                                width: 60,
-                                point: locations[i].latlong!,
-                                builder: (context) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        currentPage = i;
-                                        pageController.jumpToPage(
-                                          i,
-                                        );
-                                      });
-                                    },
-                                    child: AnimatedScale(
-                                      duration:
-                                          const Duration(milliseconds: 100),
-                                      scale: currentPage == i ? 1 : 0.8,
-                                      child: AnimatedOpacity(
-                                        duration:
-                                            const Duration(milliseconds: 100),
-                                        opacity: currentPage == i ? 1 : 0.3,
-                                        child: Icon(
-                                          Icons.location_city_outlined,
-                                          color: locations[i].type ==
-                                                  LocationType.permanent
-                                              ? Colors.blueAccent
-                                              : Colors.amberAccent,
-                                          size: 50,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              )
+                              customMarker(locations, i)
                           ],
                         )
                       ],
@@ -310,6 +277,47 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+
+  Marker customMarker(List<Location> locations, int i) {
+    return Marker(
+      height: 60,
+      width: 60,
+      point: locations[i].latlong!,
+      builder: (context) {
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              currentPage = i;
+              pageController.jumpToPage(
+                i,
+              );
+            });
+          },
+          child: Shimmer.fromColors(
+            baseColor: Colors.blueAccent,
+            highlightColor: const Color.fromARGB(255, 183, 206, 246),
+            direction: ShimmerDirection.rtl,
+            period: const Duration(milliseconds: 1000),
+            child: AnimatedScale(
+              duration: const Duration(milliseconds: 100),
+              scale: currentPage == i ? 1 : 0.8,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 100),
+                opacity: currentPage == i ? 1 : 0.3,
+                child: Icon(
+                  Icons.location_city_outlined,
+                  color: locations[i].type == LocationType.permanent
+                      ? Colors.blueAccent
+                      : Colors.amberAccent,
+                  size: 50,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
