@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_app/widgets/ratings_widget.dart';
+import 'package:map_app/widgets/weather_card.dart';
 
 import '../models/location.dart';
 
@@ -77,7 +78,7 @@ class HeaderInformation extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,45 +113,7 @@ class HeaderInformation extends StatelessWidget {
             width: 20,
           ),
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                  color: Colors.blueAccent,
-                  borderRadius: BorderRadius.circular(15)),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    location.weather?.name! ?? 'Unknown',
-                    style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        height: 1,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    location.weather?.description!.toUpperCase() ?? 'Unknown',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        height: 1,
-                        fontWeight: FontWeight.normal),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Text(
-                    '${location.weather?.temp!.toString()} °C',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        height: 1,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
+            child: WeatherCard(location: location),
           )
         ],
       ),

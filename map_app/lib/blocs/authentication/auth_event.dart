@@ -40,3 +40,10 @@ class SignInRequested extends AuthEvent {
   @override
   List<Object> get props => [];
 }
+
+class AccountDeleteRequested extends AuthEvent {
+  const AccountDeleteRequested();
+
+  @override
+  List<Object> get props => [];
+}

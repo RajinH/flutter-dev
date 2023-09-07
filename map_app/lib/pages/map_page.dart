@@ -12,6 +12,7 @@ import 'package:map_app/pages/login_page.dart';
 import 'package:map_app/repositories/locations_repository.dart';
 import 'package:map_app/shared/constants.dart';
 import 'package:map_app/models/location.dart';
+import 'package:map_app/widgets/account_card.dart';
 import 'package:map_app/widgets/information_sheet.dart';
 import 'package:map_app/widgets/location_card.dart';
 
@@ -97,6 +98,85 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
+        drawer: Drawer(
+            child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(bottom: 30),
+                child: Text(
+                  'Account Settings',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                ),
+              ),
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  if (state is AuthenticatedAuth) {
+                    User? user = state.firebaseUser;
+                    return AccountCard(user: user);
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
+              ),
+              const SizedBox(
+                height: 5,
+              ),
+              IntrinsicHeight(
+                child: Row(
+                  children: [
+                    ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[800],
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10))),
+                        onPressed: () {
+                          context
+                              .read<AuthBloc>()
+                              .add(const SignOutRequested());
+                          Navigator.of(context)
+                              .pushReplacement(MaterialPageRoute(
+                            builder: (context) => const LogInPage(),
+                          ));
+                        },
+                        child: const Text(
+                          'Log Out',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.bold),
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10))),
+                        onPressed: () {
+                          context
+                              .read<AuthBloc>()
+                              .add(const AccountDeleteRequested());
+                          Navigator.of(context)
+                              .pushReplacement(MaterialPageRoute(
+                            builder: (context) => const LogInPage(),
+                          ));
+                        },
+                        child: const Text(
+                          'Delete Account',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.bold),
+                        )),
+                  ],
+                ),
+              )
+            ],
+          ),
+        )),
         body: BlocProvider(
           create: (context) => LocationsCubit(LocationsRepository()),
           child: BlocBuilder<LocationsCubit, LocationsState>(
@@ -166,7 +246,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                             const Duration(milliseconds: 100),
                                         opacity: currentPage == i ? 1 : 0.3,
                                         child: Icon(
-                                          Icons.whatshot,
+                                          Icons.location_city_outlined,
                                           color: locations[i].type ==
                                                   LocationType.permanent
                                               ? Colors.blueAccent
@@ -183,7 +263,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                       ],
                     ),
                     Positioned(
-                        top: 110,
+                        top: 20,
                         child: SizedBox(
                           height: 200,
                           width: MediaQuery.of(context).size.width,
@@ -218,104 +298,6 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                 );
                               }),
                         )),
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        if (state is AuthenticatedAuth) {
-                          User? user = state.firebaseUser;
-
-                          return Positioned(
-                              top: 10,
-                              child: Container(
-                                height: 100,
-                                width: MediaQuery.of(context).size.width,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: Card(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15)),
-                                  elevation: 0,
-                                  color: const Color.fromARGB(255, 37, 37, 37),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: Colors.blueAccent,
-                                          foregroundColor: Colors.blueAccent,
-                                          child: Text(
-                                            user?.email?[0] ?? 'U',
-                                            style: const TextStyle(
-                                                fontSize: 20,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 20,
-                                        ),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              const Text(
-                                                'Email',
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.white,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                user?.email ?? 'Unknown Name',
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.white,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 20,
-                                        ),
-                                        Expanded(
-                                          child: ElevatedButton(
-                                              onPressed: () {
-                                                context.read<AuthBloc>().add(
-                                                    const SignOutRequested());
-                                                Navigator.of(context)
-                                                    .pushReplacement(
-                                                        MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const LogInPage(),
-                                                ));
-                                              },
-                                              child: const Text(
-                                                'Log Out',
-                                                style: TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              )),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ));
-                        } else {
-                          return const SizedBox.shrink();
-                        }
-                      },
-                    ),
                   ],
                 );
               } else {

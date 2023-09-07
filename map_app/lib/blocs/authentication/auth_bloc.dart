@@ -11,6 +11,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({required AuthRepository authRepository})
       : _authRepository = authRepository,
         super(const UnauthenticatedAuth()) {
+    on<AccountDeleteRequested>(
+      (event, emit) async {
+        await _authRepository.deleteAccount();
+        emit(const UnauthenticatedAuth());
+      },
+    );
+
     on<AuthenticationRequested>((event, emit) async {
       emit(LoadingAuth());
       User? user = await _authRepository.getCurrentUser().first;

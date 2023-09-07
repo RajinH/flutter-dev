@@ -47,6 +47,15 @@ class AuthRepository {
       throw Exception(e);
     }
   }
+
+  // firebase account deletion
+  Future<void> deleteAccount() async {
+    try {
+      await _firebaseAuth.currentUser?.delete();
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
 }
 
 class WrongPasswordException implements Exception {}
