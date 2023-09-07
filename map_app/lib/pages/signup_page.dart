@@ -64,10 +64,19 @@ class _SignUpPageState extends State<SignUpPage> {
                   const SizedBox(
                     height: 20,
                   ),
-                  const Text(
-                    'Sign Up',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  const Row(
+                    children: [
+                      Text(
+                        'Sign Up',
+                        textAlign: TextAlign.start,
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.menu_book_sharp)
+                    ],
                   ),
                   const SizedBox(
                     height: 10,

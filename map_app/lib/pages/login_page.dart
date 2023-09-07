@@ -87,10 +87,19 @@ class _LogInPageState extends State<LogInPage> {
                   const SizedBox(
                     height: 20,
                   ),
-                  const Text(
-                    'Log In',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  const Row(
+                    children: [
+                      Text(
+                        'Log In',
+                        textAlign: TextAlign.start,
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.lock_open_sharp)
+                    ],
                   ),
                   const SizedBox(
                     height: 10,
