@@ -2,6 +2,8 @@
 
 A flutter project that uses the BLoC architecture for state management and leverages several location and weather APIs to display information about points of interests. The map was built using MapBox's maps service and the locations are generated randomly around Canberra, ACT, Australia. Users need to sign up and authenticate before using the maps functionality. Authentication and user management is handled using Firebase Authentication.
 
+For the navigation, the app utilises **go_router** instead of the default navigation system.
+
 Users can get directions, ratings, and randomised descriptions of these locations.
 
 ## Screenshots
@@ -15,4 +17,3 @@ Users can get directions, ratings, and randomised descriptions of these location
 ## Video Demo
 
 https://github.com/RajinH/flutter-dev/assets/38574408/ebb2bf46-6566-4f47-b60a-ffb86c723ec8
-
