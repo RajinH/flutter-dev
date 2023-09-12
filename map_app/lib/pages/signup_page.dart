@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:map_app/blocs/authentication/auth_bloc.dart';
 import 'package:map_app/blocs/authentication/auth_event.dart';
 import 'package:map_app/blocs/authentication/auth_state.dart';
@@ -27,17 +28,12 @@ class _SignUpPageState extends State<SignUpPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthenticatedAuth) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const MapPage(),
-            ),
-            (route) => route.willHandlePopInternally,
-          );
+          context.replace('/map');
         }
 
         if (state is UnauthenticatedAuth) {
           if (state.exception is! EmailInUseException) {
-            Navigator.of(context).pop();
+            context.pop();
           }
         }
       },
@@ -224,7 +220,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.of(context).pop();
+                      context.pop();
                     },
                     child: const Text(
                       'Already have an account? Please log in here.',

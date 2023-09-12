@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:map_app/blocs/authentication/auth_bloc.dart';
 import 'package:map_app/blocs/authentication/auth_event.dart';
@@ -82,219 +83,203 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    //FirebaseAuth.instance.signOut();
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is UnauthenticatedAuth) {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context) => const LogInPage(),
-          ));
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.blueAccent,
-          elevation: 0,
-          title: const Text(
-            'Maps Integration',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+    // FirebaseAuth.instance.signOut();
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
+        elevation: 0,
+        title: const Text(
+          'Maps Integration',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        drawer: Drawer(
-            child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
-          child: BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              if (state is! AuthenticatedAuth) {
-                return const SizedBox.shrink();
-              } else {
-                User? user = state.firebaseUser;
+      ),
+      drawer: Drawer(
+          child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            if (state is! AuthenticatedAuth) {
+              return const SizedBox.shrink();
+            } else {
+              User? user = state.firebaseUser;
 
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 30),
-                      child: IntrinsicHeight(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Welcome, ${user?.email?.split('@').first.toUpperCase()}',
-                              style: const TextStyle(
-                                  fontSize: 17, fontWeight: FontWeight.bold),
-                            ),
-                            InkWell(
-                                onTap: () => {},
-                                child: const Icon(Icons.settings))
-                          ],
-                        ),
-                      ),
-                    ),
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        if (state is AuthenticatedAuth) {
-                          return AccountCard(user: user);
-                        } else {
-                          return const SizedBox.shrink();
-                        }
-                      },
-                    ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    IntrinsicHeight(
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 30),
+                    child: IntrinsicHeight(
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey[800],
-                                  elevation: 3,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10))),
-                              onPressed: () {
-                                context
-                                    .read<AuthBloc>()
-                                    .add(const SignOutRequested());
-                                Navigator.of(context)
-                                    .pushReplacement(MaterialPageRoute(
-                                  builder: (context) => const LogInPage(),
-                                ));
-                              },
-                              child: const Text(
-                                'Log Out',
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                              )),
-                          const SizedBox(
-                            width: 10,
+                          Text(
+                            'Welcome, ${user?.email?.split('@').first.toUpperCase()}',
+                            style: const TextStyle(
+                                fontSize: 17, fontWeight: FontWeight.bold),
                           ),
-                          ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.redAccent,
-                                  elevation: 3,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10))),
-                              onPressed: () {
-                                context
-                                    .read<AuthBloc>()
-                                    .add(const AccountDeleteRequested());
-                                Navigator.of(context)
-                                    .pushReplacement(MaterialPageRoute(
-                                  builder: (context) => const LogInPage(),
-                                ));
-                              },
-                              child: const Text(
-                                'Delete Account',
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                              )),
+                          InkWell(
+                              onTap: () => {},
+                              child: const Icon(Icons.settings))
                         ],
                       ),
-                    )
-                  ],
-                );
-              }
-            },
-          ),
-        )),
-        body: BlocProvider(
-          create: (context) => LocationsCubit(LocationsRepository()),
-          child: BlocBuilder<LocationsCubit, LocationsState>(
-            builder: (context, state) {
-              if (state is LocationsLoadingState) {
-                return const Center(
-                    child: CircularProgressIndicator.adaptive());
-              }
-
-              if (state is LocationsErrorState) {
-                return const Center(
-                  child: Text('Sorry Something Went Wrong :('),
-                );
-              }
-
-              if (state is LocationsLoadedState) {
-                List<Location> locations = state.locations;
-
-                return Stack(
-                  children: [
-                    FlutterMap(
-                      mapController: mapController,
-                      nonRotatedChildren: const [],
-                      options: MapOptions(
-                        minZoom: 3,
-                        maxZoom: 18,
-                        zoom: 13,
-                        center: currentLocation,
-                        onTap: (tapPosition, point) {
-                          setState(() {
-                            currentLocation = point;
-                            _animatedMapMove(currentLocation, 13);
-                          });
-                        },
-                      ),
+                    ),
+                  ),
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      if (state is AuthenticatedAuth) {
+                        return AccountCard(user: user);
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  IntrinsicHeight(
+                    child: Row(
                       children: [
-                        TileLayer(
-                          urlTemplate: AppLevelConstants.mbShareURL,
-                          additionalOptions: {
-                            'mapStyleId': AppLevelConstants.mbStyleID,
-                            'accessToken': AppLevelConstants.mbAccessToken
-                          },
+                        ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                elevation: 3,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10))),
+                            onPressed: () {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(const SignOutRequested());
+                              context.replace('/login');
+                            },
+                            child: const Text(
+                              'Log Out',
+                              style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.bold),
+                            )),
+                        const SizedBox(
+                          width: 10,
                         ),
-                        MarkerLayer(
-                          markers: [
-                            for (int i = 0; i < locations.length; i++)
-                              customMarker(locations, i)
-                          ],
-                        )
+                        ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                                elevation: 3,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10))),
+                            onPressed: () {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(const AccountDeleteRequested());
+                              context.replace('/login');
+                            },
+                            child: const Text(
+                              'Delete Account',
+                              style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.bold),
+                            )),
                       ],
                     ),
-                    Positioned(
-                        top: 20,
-                        child: SizedBox(
-                          height: 200,
-                          width: MediaQuery.of(context).size.width,
-                          child: PageView.builder(
-                              controller: pageController,
-                              onPageChanged: (value) {
-                                setState(() {
-                                  currentPage = value;
-                                  currentLocation = locations[value].latlong!;
-                                  _animatedMapMove(currentLocation, 13);
-                                });
-                              },
-                              itemCount: locations.length,
-                              itemBuilder: (_, index) {
-                                final location = locations[index];
+                  )
+                ],
+              );
+            }
+          },
+        ),
+      )),
+      body: BlocProvider(
+        create: (context) => LocationsCubit(LocationsRepository()),
+        child: BlocBuilder<LocationsCubit, LocationsState>(
+          builder: (context, state) {
+            if (state is LocationsLoadingState) {
+              return const Center(child: CircularProgressIndicator.adaptive());
+            }
 
-                                return Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: LocationCard(
-                                    location: location,
-                                    onTap: () => {
-                                      showBottomSheet(
-                                        context: context,
-                                        builder: (context) {
-                                          return InformationSheet(
-                                            location: location,
-                                          );
-                                        },
-                                      )
-                                    },
-                                  ),
-                                );
-                              }),
-                        )),
-                  ],
-                );
-              } else {
-                return const Center(
-                  child: Text('Sorry Something Went Wrong :()'),
-                );
-              }
-            },
-          ),
+            if (state is LocationsErrorState) {
+              return const Center(
+                child: Text('Sorry Something Went Wrong :('),
+              );
+            }
+
+            if (state is LocationsLoadedState) {
+              List<Location> locations = state.locations;
+
+              return Stack(
+                children: [
+                  FlutterMap(
+                    mapController: mapController,
+                    nonRotatedChildren: const [],
+                    options: MapOptions(
+                      minZoom: 3,
+                      maxZoom: 18,
+                      zoom: 13,
+                      center: currentLocation,
+                      onTap: (tapPosition, point) {
+                        setState(() {
+                          currentLocation = point;
+                          _animatedMapMove(currentLocation, 13);
+                        });
+                      },
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: AppLevelConstants.mbShareURL,
+                        additionalOptions: {
+                          'mapStyleId': AppLevelConstants.mbStyleID,
+                          'accessToken': AppLevelConstants.mbAccessToken
+                        },
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          for (int i = 0; i < locations.length; i++)
+                            customMarker(locations, i)
+                        ],
+                      )
+                    ],
+                  ),
+                  Positioned(
+                      top: 20,
+                      child: SizedBox(
+                        height: 200,
+                        width: MediaQuery.of(context).size.width,
+                        child: PageView.builder(
+                            controller: pageController,
+                            onPageChanged: (value) {
+                              setState(() {
+                                currentPage = value;
+                                currentLocation = locations[value].latlong!;
+                                _animatedMapMove(currentLocation, 13);
+                              });
+                            },
+                            itemCount: locations.length,
+                            itemBuilder: (_, index) {
+                              final location = locations[index];
+
+                              return Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: LocationCard(
+                                  location: location,
+                                  onTap: () => {
+                                    showBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return InformationSheet(
+                                          location: location,
+                                        );
+                                      },
+                                    )
+                                  },
+                                ),
+                              );
+                            }),
+                      )),
+                ],
+              );
+            } else {
+              return const Center(
+                child: Text('Sorry Something Went Wrong :()'),
+              );
+            }
+          },
         ),
       ),
     );

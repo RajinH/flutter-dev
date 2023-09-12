@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:map_app/blocs/authentication/auth_bloc.dart';
 import 'package:map_app/blocs/authentication/auth_event.dart';
 import 'package:map_app/blocs/authentication/auth_state.dart';
-import 'package:map_app/pages/map_page.dart';
-import 'package:map_app/pages/signup_page.dart';
 import 'package:map_app/repositories/auth_repository.dart';
 
 class LogInPage extends StatefulWidget {
@@ -36,12 +35,7 @@ class _LogInPageState extends State<LogInPage> {
         if (state is AuthenticatedAuth) {
           _emailController.clear();
           _passwordController.clear();
-
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const MapPage(),
-            ),
-          );
+          context.replace('/map');
         }
 
         if (state is UnauthenticatedAuth) {
@@ -205,9 +199,7 @@ class _LogInPageState extends State<LogInPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const SignUpPage(),
-                      ));
+                      context.push('/signup');
                     },
                     child: const Text(
                       'No account? Please register here.',
